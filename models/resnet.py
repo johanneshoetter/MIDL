@@ -96,15 +96,15 @@ class ResNet(nn.Module):
         out = self.linear(out)
         return out
     
-    def save(self, acc, epoch):
+    def save(self, acc, epoch, seed):
         state = {
             'net': self.state_dict(),
             'acc': acc,
-            'epoch': epoch,
+            'epoch': epoch
         }
         if not os.path.isdir('serialized'):
             os.mkdir('serialized')
-        torch.save(state, './serialized/ckpt.pth')
+        torch.save(state, './serialized/ckpt_{}.pth'.format(seed))
         best_acc = acc
 
     def load(self, checkpoint):
