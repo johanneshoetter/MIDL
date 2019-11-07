@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import os
+
 class BasicBlock(nn.Module):
     expansion = 1
 
@@ -93,9 +95,25 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
+    
+    def save(self, acc, epoch):
+        state = {
+            'net': self.state_dict(),
+            'acc': acc,
+            'epoch': epoch,
+        }
+        if not os.path.isdir('serialized'):
+            os.mkdir('serialized')
+        torch.save(state, './serialized/ckpt.pth')
+        best_acc = acc
 
+    def load(self, checkpoint):
+        self.load_state_dict(checkpoint['net'])
+        best_acc = checkpoint['acc']
+        start_epoch = checkpoint['epoch']
+        return best_acc, start_epoch, self
 
-def ResNet18():
+def ResNet18(verbose=True):
     '''
     Returns an initialized ResNet with 18 layers
     '''
