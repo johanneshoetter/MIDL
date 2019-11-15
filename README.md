@@ -14,6 +14,7 @@ In this seminar, we're trying to find out whether there are better approaches fo
 
 ---
 **Current values**
+
 | Mode          | Accuracy | Loss  |
 |---------------|----------|-------|
 | Train/Shuffle | 99.981   | 0.029 |
