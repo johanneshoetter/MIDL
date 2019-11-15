@@ -11,3 +11,12 @@ In this seminar, we're trying to find out whether there are better approaches fo
 - Sorting by class distribution
 - Batching dynamic sizes
 - ...
+
+---
+**Current values**
+| Mode          | Accuracy | Loss  |
+|---------------|----------|-------|
+| Train/Shuffle | 99.981   | 0.029 |
+| Test/Shuffle  | 95.090   | 0.025 |
+| Train/Freezed | 99.997   | 0.030 |
+| Test/Freezed  | 94.527   | 0.026 |
