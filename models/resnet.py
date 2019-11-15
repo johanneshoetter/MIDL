@@ -4,6 +4,8 @@ import torch.nn.functional as F
 
 import os
 
+from datetime import datetime
+
 class BasicBlock(nn.Module):
     expansion = 1
 
@@ -102,9 +104,10 @@ class ResNet(nn.Module):
             'acc': acc,
             'epoch': epoch
         }
-        if not os.path.isdir('serialized'):
-            os.mkdir('serialized')
-        torch.save(state, './serialized/ckpt_{}.pth'.format(seed))
+        today = datetime.today().strftime('%Y%m%d')
+        if not os.path.isdir('serialized/{}'.format(today)):
+            os.mkdir('serialized/{}'.format(today))
+        torch.save(state, './serialized/{}/ckpt_{}.pth'.format(today, seed))
         best_acc = acc
 
     def load(self, checkpoint):
