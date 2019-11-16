@@ -1,0 +1,3 @@
+epoch	seed	train	strategy	accuracy	loss
+1	10	True	freeze	31.036	0.029438955476284025
+1	10	False	freeze	43.68	0.023819254112243653
