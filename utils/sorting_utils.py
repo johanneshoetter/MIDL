@@ -59,7 +59,7 @@ def sort_one_class(inputs, targets, batch_size, use_shuffle=True, random_state=N
         input_batches.extend(taken_inputs)
         target_batches.extend(taken_targets)
                 
-    return input_batches, target_batches
+    return np.array(input_batches), np.array(target_batches) 
 
 def sort_all_classes(inputs, targets, batch_size, use_shuffle=True, random_state=None):
     '''
@@ -115,4 +115,4 @@ def sort_all_classes(inputs, targets, batch_size, use_shuffle=True, random_state
         input_batches.extend(sorted_inputs)
         target_batches.extend(sorted_targets)
                 
-    return input_batches, target_batches 
+    return np.array(input_batches), np.array(target_batches) 
