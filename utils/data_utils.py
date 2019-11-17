@@ -17,8 +17,8 @@ class DataLoader():
         self.trainset = None
         self.testset = None
         
-    def download_cifar(self):
-        print('==> Preparing data..')
+    def download_cifar(self, batch_size=64):
+        #print('==> Preparing data..')
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -33,7 +33,7 @@ class DataLoader():
 
         # data needs to be loaded through dataloader to get into the correct format
         trainset = torchvision.datasets.CIFAR10(root=self.root, train=True, download=True, transform=transform_train)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=False, num_workers=2)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False, num_workers=2)
         self.X_train, self.Y_train = [], []
         for x, y in trainloader:
             self.X_train.extend(x.numpy()) #numpy needed for a casting workaround
@@ -42,19 +42,18 @@ class DataLoader():
         self.Y_train = np.array(self.Y_train)
         
         testset = torchvision.datasets.CIFAR10(root=self.root, train=False, download=True, transform=transform_test)
-        testloader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=False, num_workers=2)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
         self.X_test, self.Y_test = [], []
         for x, y in testloader:
             self.X_test.extend(x.numpy())
             self.Y_test.extend(y.numpy())
         self.X_test = np.array(self.X_test)
         self.Y_test = np.array(self.Y_test)
-        
-        
+                
         self.X_batches_train, self.Y_batches_train = None, None
         self.X_batches_test, self.Y_batches_test = None, None
         
-    def prepare_cifar(self, strategy, batch_size=128, random_state=None):
+    def prepare_cifar(self, strategy, batch_size=64, random_state=None):
         self.batch_size = batch_size
         assert strategy in ['freeze', 'shuffle', 'homogeneous', 'heterogeneous'], 'Unknown action'
         if strategy == 'freeze':
@@ -82,7 +81,7 @@ class DataLoader():
         while batch_idx < len(X):
             yield X[batch_idx: batch_idx+self.batch_size], Y[batch_idx: batch_idx+self.batch_size]
             batch_idx += self.batch_size
-
+            
 ###### OLD VERSION
 ##class DataLoader():
 ##    
