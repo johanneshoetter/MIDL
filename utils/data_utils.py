@@ -12,12 +12,21 @@ from .sorting_utils import sort_one_class, sort_all_classes
 
 class DataLoader():
     
-    def __init__(self, root='./data'):
+    def __init__(self, root='./data', batch_size=64):
         self.root = root        
         self.trainset = None
         self.testset = None
         
-    def download_cifar(self, batch_size=64):
+        self.seed_incrementer = {
+            'freeze': 0,
+            'shuffle': 0,
+            'homogeneous': 0,
+            'heterogeneous': 0
+        }
+        
+        self.batch_size = batch_size
+        
+    def download_cifar(self):
         #print('==> Preparing data..')
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
@@ -33,7 +42,7 @@ class DataLoader():
 
         # data needs to be loaded through dataloader to get into the correct format
         trainset = torchvision.datasets.CIFAR10(root=self.root, train=True, download=True, transform=transform_train)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False, num_workers=2)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=self.batch_size, shuffle=False, num_workers=2)
         self.X_train, self.Y_train = [], []
         for x, y in trainloader:
             self.X_train.extend(x.numpy()) #numpy needed for a casting workaround
@@ -42,7 +51,7 @@ class DataLoader():
         self.Y_train = np.array(self.Y_train)
         
         testset = torchvision.datasets.CIFAR10(root=self.root, train=False, download=True, transform=transform_test)
-        testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=self.batch_size, shuffle=False, num_workers=2)
         self.X_test, self.Y_test = [], []
         for x, y in testloader:
             self.X_test.extend(x.numpy())
@@ -52,28 +61,35 @@ class DataLoader():
                 
         self.X_batches_train, self.Y_batches_train = None, None
         self.X_batches_test, self.Y_batches_test = None, None
+            
+    def yield_batches(self, strategy, use_train=True, random_state=None):
         
-    def prepare_cifar(self, strategy, batch_size=64, random_state=None):
-        self.batch_size = batch_size
         assert strategy in ['freeze', 'shuffle', 'homogeneous', 'heterogeneous'], 'Unknown action'
+        
+        # seeds will be incremented at each epoch, to give the shuffling methods a new random seed
+        # this will still be deterministic!
+        current_seed = random_state + self.seed_incrementer[strategy]
+        self.seed_incrementer[strategy] += 1
+        
+        # prepare the data
         if strategy == 'freeze':
             self.X_batches_train, self.Y_batches_train = self.X_train, self.Y_train
             self.X_batches_test, self.Y_batches_test = self.X_test, self.Y_test
         elif strategy == 'shuffle':
-            self.X_batches_train, self.Y_batches_train = shuffle(self.X_train, self.Y_train, random_state=random_state)
-            self.X_batches_test, self.Y_batches_test = shuffle(self.X_test, self.Y_test, random_state=random_state)
+            self.X_batches_train, self.Y_batches_train = shuffle(self.X_train, self.Y_train, random_state=current_seed)
+            self.X_batches_test, self.Y_batches_test = shuffle(self.X_test, self.Y_test, random_state=current_seed)
         elif strategy == 'homogeneous':
             self.X_batches_train, self.Y_batches_train = sort_one_class(self.X_train, self.Y_train, self.batch_size, \
-                                                            use_shuffle=True, random_state=random_state)
+                                                            use_shuffle=True, random_state=current_seed)
             self.X_batches_test, self.Y_batches_test = sort_one_class(self.X_test, self.Y_test, self.batch_size, \
-                                                            use_shuffle=True, random_state=random_state)
+                                                            use_shuffle=True, random_state=current_seed)
         elif strategy == 'heterogeneous':
             self.X_batches_train, self.Y_batches_train = sort_all_classes(self.X_train, self.Y_train, self.batch_size, \
-                                                              use_shuffle=True, random_state=random_state)
+                                                              use_shuffle=True, random_state=current_seed)
             self.X_batches_test, self.Y_batches_test = sort_all_classes(self.X_test, self.Y_test, self.batch_size, \
-                                                              use_shuffle=True, random_state=random_state)
-    
-    def yield_batches(self, use_train=True):
+                                                              use_shuffle=True, random_state=current_seed)
+        
+        # yield it in batches
         batch_idx = 0
         X = self.X_batches_train if use_train else self.X_batches_test
         Y = self.Y_batches_train if use_train else self.Y_batches_test
