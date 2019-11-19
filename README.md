@@ -13,4 +13,19 @@ In this seminar, we're trying to find out whether there are better approaches fo
 - ...
 
 ---
+**Metrics**: The following table shows the __best__ metrics which the model reached in the given mode after 150 epochs.
+| Mode          | Training | Accuracy | Loss  |
+|---------------|----------|----------|-------|
+|Freeze         | X        |          |       |
+|Shuffle        | X        |          |       |
+|Homogeneous    | X        |          |       |
+|Heterogeneous  | X        |          |       |
+|Freeze         |          |          |       |
+|Shuffle        |          |          |       |
+|Homogeneous    |          |          |       |
+|Heterogeneous  |          |          |       |
+
+**Graphs**: The complete results can be analyzed given the following two graphs.
 ![Accuracy graph](figures/20191119_accuracy.jpg "Accuracy")
+
+![Loss graph](figures/20191119_loss.jpg "Loss")
