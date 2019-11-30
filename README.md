@@ -13,12 +13,14 @@ In this seminar, we're trying to find out whether there are better approaches fo
 - ...
 
 ---
-**Dataset**: [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)
+**Dataset**: [**CIFAR-10**](https://www.cs.toronto.edu/~kriz/cifar.html)
+
 The CIFAR-10 dataset consists of 60000 32x32 colour images in 10 classes, with 6000 images per class. There are 50000 training images and 10000 test images.
 The dataset is divided into five training batches and one test batch, each with 10000 images. The test batch contains exactly 1000 randomly-selected images from each class. The training batches contain the remaining images in random order, but some training batches may contain more images from one class than another. Between them, the training batches contain exactly 5000 images from each class.
 ![CIFAR-10](images/cifar10.jpg "CIFAR-10")
 
-**Model**: [ResNet](https://arxiv.org/abs/1512.03385)
+**Model**: [**ResNet**](https://arxiv.org/abs/1512.03385)
+
 The neural network used during the seminar is the ResNet model with 18 layers, which is a model published in late 2015. Back then, it was the state-of-the-art for image recognition. 
 ![ResNet](images/resnet_visualization.png "ResNet")
 
@@ -43,4 +45,4 @@ The neural network used during the seminar is the ResNet model with 18 layers, w
 ![Accuracy graph](figures/20191119_accuracy.jpg "Accuracy")
 
 ![Loss graph](figures/20191119_loss.jpg "Loss")
-known error - has to be updated: the y-axis has a wrong label (should be cross entropy loss instead of accuracy)
+known error for the loss graph: the y-axis has a wrong label (should be cross entropy loss instead of accuracy, will be updated soon)
