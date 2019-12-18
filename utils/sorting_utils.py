@@ -118,27 +118,21 @@ def sort_all_classes(inputs, targets, batch_size, use_shuffle=True, random_state
                 
     return np.array(input_batches), np.array(target_batches) 
 
-def weighted_highest_sampling(inputs, targets, weighted_indices, batch_size=64):
+def weighted_highest_sampling(weighted_indices, batch_size=3, top_fn=max):
     '''
     In weighted random sampling (WRS) the items are weighted and the probability of 
     each item to be selected is determined by its relative weight.
     -- Params:
-    @inputs: input data for the model
-    @targets: desired outcome for the model given that it gets @inputs
     @weighted_indices: dictionary containing which index of the samples has which probability
     @batch_size: number of samples per batch
-    -- Return: one batch of the inputs, one batch of the targets
+    -- Return: indices of the pulled inputs
     '''
     
-    assert len(inputs) == len(targets), 'The number of inputs to pull from must fit the number of targets'
-    assert len(inputs) == len(weighted_indices), 'The number of inputs to pull from must fit the given weighted indices'
-    assert type(weighted_indices) == dict, 'The weighted indices must be given as a dictionary'
-      
-    pulled_samples = []
-    pulled_targets = []
+    assert type(weighted_indices) == dict, 'The weighted indices must be given as a dictionary'  
+
+    pulled_indices = []
     for _ in range(batch_size):
-        pulled_index = max(weighted_indices.items(), key=operator.itemgetter(1))[0]
+        pulled_index = top_fn(weighted_indices.items(), key=operator.itemgetter(1))[0]            
         weighted_indices[pulled_index] = 0
-        pulled_samples.append(inputs[pulled_index])
-        pulled_targets.append(targets[pulled_index])
-    return pulled_samples, pulled_targets
+        pulled_indices.append(pulled_index)
+    return pulled_indices

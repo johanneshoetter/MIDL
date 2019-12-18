@@ -8,7 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 from sklearn.utils import shuffle
 
-from .sorting_utils import sort_one_class, sort_all_classes
+from .sorting_utils import sort_one_class, sort_all_classes, weighted_highest_sampling
 
 class DataLoader():
     
@@ -62,7 +62,7 @@ class DataLoader():
         self.X_batches_train, self.Y_batches_train = None, None
         self.X_batches_test, self.Y_batches_test = None, None
             
-    def yield_batches(self, strategy, use_train=True, random_state=None):
+    def yield_batches(self, strategy, use_train=True, random_state=None, model=None):
         
         assert strategy in ['freeze', 'shuffle', 'homogeneous', 'heterogeneous'], 'Unknown action'
         
@@ -88,6 +88,10 @@ class DataLoader():
                                                               use_shuffle=True, random_state=current_seed)
             self.X_batches_test, self.Y_batches_test = sort_all_classes(self.X_test, self.Y_test, self.batch_size, \
                                                               use_shuffle=True, random_state=current_seed)
+        elif strategy == 'max_k_loss':
+            pass
+        elif strategy == 'min_k_loss':
+            pass
         
         # yield it in batches
         batch_idx = 0
