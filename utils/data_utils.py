@@ -16,13 +16,8 @@ class DataLoader():
         self.root = root        
         self.trainset = None
         self.testset = None
-        
-        self.seed_incrementer = {
-            'freeze': 0,
-            'shuffle': 0,
-            'homogeneous': 0,
-            'heterogeneous': 0
-        }
+        self.known_strategies = ['freeze', 'shuffle', 'homogeneous', 'heterogeneous', 'max_k_loss', 'min_k_loss']
+        self.seed_incrementer = {strategy: 0 for strategy in self.known_strategies}
         
         self.batch_size = batch_size
         
@@ -62,9 +57,8 @@ class DataLoader():
         self.X_batches_train, self.Y_batches_train = None, None
         self.X_batches_test, self.Y_batches_test = None, None
             
-    def yield_batches(self, strategy, use_train=True, random_state=None, model=None):
-        
-        assert strategy in ['freeze', 'shuffle', 'homogeneous', 'heterogeneous'], 'Unknown action'
+    def yield_batches(self, strategy, use_train=True, random_state=None, criterion=None, device=None, num_iterations=None):
+        assert strategy in self.known_strategies, 'Unknown action'
         
         # seeds will be incremented at each epoch, to give the shuffling methods a new random seed
         # this will still be deterministic!
@@ -75,32 +69,88 @@ class DataLoader():
         if strategy == 'freeze':
             self.X_batches_train, self.Y_batches_train = self.X_train, self.Y_train
             self.X_batches_test, self.Y_batches_test = self.X_test, self.Y_test
+            yield_batchwise = True
         elif strategy == 'shuffle':
             self.X_batches_train, self.Y_batches_train = shuffle(self.X_train, self.Y_train, random_state=current_seed)
             self.X_batches_test, self.Y_batches_test = shuffle(self.X_test, self.Y_test, random_state=current_seed)
+            yield_batchwise = True
         elif strategy == 'homogeneous':
             self.X_batches_train, self.Y_batches_train = sort_one_class(self.X_train, self.Y_train, self.batch_size, \
                                                             use_shuffle=True, random_state=current_seed)
             self.X_batches_test, self.Y_batches_test = sort_one_class(self.X_test, self.Y_test, self.batch_size, \
                                                             use_shuffle=True, random_state=current_seed)
+            yield_batchwise = True
         elif strategy == 'heterogeneous':
             self.X_batches_train, self.Y_batches_train = sort_all_classes(self.X_train, self.Y_train, self.batch_size, \
                                                               use_shuffle=True, random_state=current_seed)
             self.X_batches_test, self.Y_batches_test = sort_all_classes(self.X_test, self.Y_test, self.batch_size, \
                                                               use_shuffle=True, random_state=current_seed)
+            yield_batchwise = True
         elif strategy == 'max_k_loss':
-            pass
+            self._initialize_weights(criterion, device, seed=random_state)
+            print("NUMBER OF ITERATIONS: ", num_iterations)
+            for iteration in range(num_iterations):
+                pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=max)
+                yield self.get_from_idxs(pulled_idxs)
+                self._update_weights(pulled_idxs, criterion, device)
+                
+            # set to False to stop method after this yielding
+            yield_batchwise = False
+
         elif strategy == 'min_k_loss':
-            pass
+            self._initialize_weights(criterion, device, seed=random_state)
+            
+            for iteration in range(num_iterations):
+                pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=min)
+                yield self.get_from_idxs(pulled_idxs)
+                self._update_weights(pulled_idxs, criterion, device)
+                
+            # set to False to stop method after this yielding
+            yield_batchwise = False
+            
+        if yield_batchwise:
+            # yield it in batches
+            batch_idx = 0
+            X = self.X_batches_train if use_train else self.X_batches_test
+            Y = self.Y_batches_train if use_train else self.Y_batches_test
+            X, Y = torch.from_numpy(X), torch.from_numpy(Y)
+            while batch_idx < len(X):
+                yield X[batch_idx: batch_idx+self.batch_size], Y[batch_idx: batch_idx+self.batch_size]
+                batch_idx += self.batch_size
+            
+    def get_from_idxs(self, idxs, use_train=True):
+        if use_train:
+            X, Y = self.X_train[idxs], self.Y_train[idxs]
+        else:
+            X, Y = self.X_test[idxs], self.Y_test[idxs]
+        return torch.from_numpy(X), torch.from_numpy(Y)
+    
+    def set_model(self, model):
+        self.model = model
+    
+    def _initialize_weights(self, criterion, device, seed=None):
+        assert self.model != None, 'Model needs to be set first!'
         
-        # yield it in batches
-        batch_idx = 0
-        X = self.X_batches_train if use_train else self.X_batches_test
-        Y = self.Y_batches_train if use_train else self.Y_batches_test
-        X, Y = torch.from_numpy(X), torch.from_numpy(Y)
-        while batch_idx < len(X):
-            yield X[batch_idx: batch_idx+self.batch_size], Y[batch_idx: batch_idx+self.batch_size]
-            batch_idx += self.batch_size
+        self.weighted_indices = {}
+        sample_idx = 0
+        
+        # using freeze as this is the simplest way of getting data in batches fast
+        for inputs, targets in self.yield_batches('freeze', random_state=seed, use_train=True):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = self.model(inputs)
+            losses = criterion(outputs, targets)
+            for loss in losses:
+                loss = float(loss.cpu().detach().numpy())
+                self.weighted_indices[sample_idx] = loss
+                sample_idx += 1
+                
+    def _update_weights(self, idxs, criterion, device, seed=None):
+        inputs, targets = self.get_from_idxs(idxs)
+        inputs, targets = inputs.to(device), targets.to(device)
+        outputs = self.model(inputs)
+        losses = criterion(outputs, targets)
+        for idx, loss in zip(idxs, losses):
+            self.weighted_indices[idx] = float(loss.cpu().detach().numpy())
             
 ###### OLD VERSION
 ##class DataLoader():
