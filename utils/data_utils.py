@@ -144,21 +144,28 @@ class DataLoader():
     def set_model(self, model):
         self.model = model
     
-    def initialize_weights(self, criterion, device, seed=None):
+    def initialize_weights(self, criterion, device, seed=None, dump=None):
         assert self.model != None, 'Model needs to be set first!'
         
         self.weighted_indices = {}
         sample_idx = 0
         
         # using freeze as this is the simplest way of getting data in batches fast
+        dump_losses = []
         for inputs, targets in self.yield_batches('freeze', random_state=seed, use_train=True):
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = self.model(inputs)
             losses = criterion(outputs, targets)
             for loss in losses:
                 loss = float(loss.cpu().detach().numpy())
+                dump_losses.append(loss)
                 self.weighted_indices[sample_idx] = loss
                 sample_idx += 1
+        if dump:
+            with open(dump, 'w') as file_handler:
+                for loss in dump_losses:
+                    file_handler.write("{}\n".format(loss))
+            
                 
     def _update_weights(self, idxs, criterion, device, seed=None):
         inputs, targets = self.get_from_idxs(idxs)
