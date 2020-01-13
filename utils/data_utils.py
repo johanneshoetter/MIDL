@@ -81,7 +81,7 @@ class DataLoader():
         self.X_batches_train, self.Y_batches_train = None, None
         self.X_batches_test, self.Y_batches_test = None, None
             
-    def yield_batches(self, strategy, use_train=True, random_state=None, criterion=None, device=None):
+    def yield_batches(self, strategy, use_train=True, random_state=None, criterion=None, device=None, num_repeats=100):
         assert strategy in self.known_strategies, 'Unknown action'
         
         # seeds will be incremented at each epoch, to give the shuffling methods a new random seed
@@ -111,18 +111,20 @@ class DataLoader():
                                                               use_shuffle=True, random_state=current_seed)
             yield_batchwise = True
         elif strategy == 'max_k_loss':
-            pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=max)
-            self._update_weights(pulled_idxs, criterion, device)
-            X, Y = self.get_from_idxs(pulled_idxs)
-            yield X, Y
-            yield_batchwise = False
+            for _ in range(num_repeats):
+                pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=max)
+                self._update_weights(pulled_idxs, criterion, device)
+                X, Y = self.get_from_idxs(pulled_idxs)
+                yield X, Y
+                yield_batchwise = False
 
         elif strategy == 'min_k_loss':
-            pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=min)
-            self._update_weights(pulled_idxs, criterion, device)
-            X, Y = self.get_from_idxs(pulled_idxs)
-            yield X, Y
-            yield_batchwise = False
+            for _ in range(num_repeats):
+                pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=min)
+                self._update_weights(pulled_idxs, criterion, device)
+                X, Y = self.get_from_idxs(pulled_idxs)
+                yield X, Y
+                yield_batchwise = False
             
         if yield_batchwise:
             # yield it in batches
