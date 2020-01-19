@@ -136,3 +136,27 @@ def weighted_highest_sampling(weighted_indices, batch_size=3, top_fn=max):
         weighted_indices[pulled_index] = 0
         pulled_indices.append(pulled_index)
     return pulled_indices
+
+def weighted_highest_sampling_per_class(weighted_indices_per_class, batch_size=3, top_fn=max):
+    '''
+    # TODO: update
+    In weighted random sampling (WRS) the items are weighted and the probability of 
+    each item to be selected is determined by its relative weight.
+    -- Params:
+    @weighted_indices: dictionary containing which index of the samples has which probability
+    @batch_size: number of samples per batch
+    -- Return: indices of the pulled inputs
+    '''
+    
+    #assert type(weighted_indices_per_class) == dict, 'The weighted indices must be given as a dictionary'  
+
+    pulled_indices = []
+    key_range = list(weighted_indices_per_class.keys())
+    cur_key_idx = 0
+    for _ in range(batch_size):
+        key = key_range[cur_key_idx % len(key_range)]
+        cur_key_idx += 1
+        pulled_index = top_fn(weighted_indices_per_class[key].items(), key=operator.itemgetter(1))[0]            
+        weighted_indices_per_class[key][pulled_index] = 0
+        pulled_indices.append(pulled_index)
+    return pulled_indices

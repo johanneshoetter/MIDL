@@ -1,0 +1,9 @@
+epoch	seed	train	strategy	accuracy	loss
+1	10	True	heterogeneous_max_k_loss	6.0	0.02472733974456787
+1	10	False	heterogeneous_max_k_loss	9.82	0.02363369448184967
+2	10	True	heterogeneous_max_k_loss	25.0	0.020578935146331787
+2	10	False	heterogeneous_max_k_loss	11.32	0.024339029026031495
+1	10	True	heterogeneous_min_k_loss	6.0	0.02472733974456787
+1	10	False	heterogeneous_min_k_loss	9.82	0.02363369448184967
+2	10	True	heterogeneous_min_k_loss	25.0	0.020578935146331787
+2	10	False	heterogeneous_min_k_loss	11.32	0.024339029026031495
