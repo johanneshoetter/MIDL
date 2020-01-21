@@ -86,7 +86,7 @@ class DataLoader():
                                                               use_shuffle=True, random_state=current_seed)
         elif strategy == 'max_k_loss' or strategy == 'min_k_loss':
             yield_batchwise = False
-            top_fn = max if strategy == 'heterogeneous_max_k_loss' else min
+            top_fn = max if strategy == 'max_k_loss' else min
             for _ in range(num_iterations):
                 pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=top_fn)
                 self._update_weights(pulled_idxs, criterion, device)
