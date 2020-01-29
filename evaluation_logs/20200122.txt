@@ -1,5 +1,0 @@
-epoch	seed	train	strategy	accuracy	loss
-1	10	True	max_k_loss	23.294	0.02410014753818512
-1	10	False	max_k_loss	22.79	0.024470453429222105
-1	10	True	min_k_loss	10.0	0.27011897312164307
-1	10	False	min_k_loss	10.0	0.2774804132461548
