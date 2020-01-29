@@ -42,10 +42,14 @@ The neural network used during the seminar is the ResNet model with 18 layers, w
 |Heterogeneous  |          |089.26    |0.024  |
 (must be updated)
 
-**Graphs**: The complete results can be analyzed given the following four graphs.
-![Accuracy graph 1](figures/20191129_1_accuracy.jpg "Accuracy 1")
-![Accuracy graph 2](figures/20191129_2_accuracy.jpg "Accuracy 2")
+**Graphs**: The complete results can be analyzed given the following eight graphs.
+![Train Accuracy graph 1](figures/20191129_1_accuracy_train.jpg "Train Accuracy 1")
+![Test Accuracy graph 1](figures/20191129_1_accuracy_test.jpg "Test Accuracy 1")
+![Train Accuracy graph 2](figures/20191129_2_accuracy_train.jpg "Train Accuracy 2")
+![Test Accuracy graph 2](figures/20191129_2_accuracy_test.jpg "Test Accuracy 2")
 
-![Loss graph 1](figures/20191129_1_loss.jpg "Loss 1")
-![Loss graph 2](figures/20191129_2_loss.jpg "Loss 2")
+![Train Loss graph 1](figures/20191129_1_loss_train.jpg "Train Loss 1")
+![Test Loss graph 1](figures/20191129_1_loss_test.jpg "Test Loss 1")
+![Train Loss graph 2](figures/20191129_2_loss_train.jpg "Train Loss 2")
+![Test Loss graph 2](figures/20191129_2_loss_test.jpg "Test Loss 2")
 known error for the loss graph: the y-axis has a wrong label (should be cross entropy loss instead of accuracy, will be updated soon)
