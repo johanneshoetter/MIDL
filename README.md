@@ -40,9 +40,12 @@ The neural network used during the seminar is the ResNet model with 18 layers, w
 |Shuffle        |          |089.57    |0.026  |
 |Homogeneous    |          |010.00    |0.209  |
 |Heterogeneous  |          |089.26    |0.024  |
+(must be updated)
 
-**Graphs**: The complete results can be analyzed given the following two graphs.
-![Accuracy graph](figures/20191119_accuracy.jpg "Accuracy")
+**Graphs**: The complete results can be analyzed given the following four graphs.
+![Accuracy graph 1](figures/20191129_1_accuracy.jpg "Accuracy 1")
+![Accuracy graph 2](figures/20191129_2_accuracy.jpg "Accuracy 2")
 
-![Loss graph](figures/20191119_loss.jpg "Loss")
+![Loss graph 1](figures/20191129_1_loss.jpg "Loss 1")
+![Loss graph 2](figures/20191129_2_loss.jpg "Loss 2")
 known error for the loss graph: the y-axis has a wrong label (should be cross entropy loss instead of accuracy, will be updated soon)
