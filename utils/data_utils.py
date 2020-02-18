@@ -12,7 +12,7 @@ import torchvision
 import torchvision.transforms as transforms
 from sklearn.utils import shuffle
 
-from utils.sorting_utils import sort_one_class, sort_all_classes, weighted_highest_sampling, weighted_highest_sampling_per_class
+from utils.sorting_utils import sort_one_class, sort_all_classes, weighted_highest_sampling, weighted_highest_sampling_per_class, weighted_random_sampling
 
 from collections import defaultdict
 
@@ -22,7 +22,7 @@ class DataLoader():
         self.root = root        
         self.trainset = None
         self.testset = None
-        self.known_strategies = ['freeze', 'shuffle', 'homogeneous', 'heterogeneous', 'max_k_loss', 'min_k_loss', 'heterogeneous_max_k_loss', 'heterogeneous_min_k_loss']
+        self.known_strategies = ['freeze', 'shuffle', 'homogeneous', 'heterogeneous', 'max_k_loss', 'min_k_loss', 'heterogeneous_max_k_loss', 'heterogeneous_min_k_loss', 'weighted_random_sampling']
         self.seed_incrementer = {strategy: 0 for strategy in self.known_strategies}
         
         self.batch_size = batch_size
@@ -63,7 +63,7 @@ class DataLoader():
         self.X_batches_train, self.Y_batches_train = None, None
         self.X_batches_test, self.Y_batches_test = None, None
             
-    def yield_batches(self, strategy, use_train=True, random_state=None, criterion=None, device=None, num_iterations=100):
+    def yield_batches(self, strategy, use_train=True, random_state=None, criterion=None, device=None, num_iterations=100, update_every_iteration=False):
         assert strategy in self.known_strategies, 'Unknown action'
         
         # seeds will be incremented at each epoch, to give the shuffling methods a new random seed
@@ -89,7 +89,21 @@ class DataLoader():
             top_fn = max if strategy == 'max_k_loss' else min
             for _ in range(num_iterations):
                 pulled_idxs = weighted_highest_sampling(self.weighted_indices, batch_size=self.batch_size, top_fn=top_fn)
-                self._update_weights(pulled_idxs, criterion, device)
+                if update_every_iteration:
+                    self.initialize_weights(criterion, device, seed=random_state)
+                else:
+                    self._update_weights(pulled_idxs, criterion, device)
+                X, Y = self.get_from_idxs(pulled_idxs)
+                yield X, Y
+                
+        elif strategy == 'weighted_random_sampling':
+            yield_batchwise = False
+            for _ in range(num_iterations):
+                pulled_idxs = weighted_random_sampling(self.weighted_indices, batch_size=self.batch_size, random_state=random_state)
+                if update_every_iteration:
+                    self.initialize_weights(criterion, device, seed=random_state)
+                else:
+                    self._update_weights(pulled_idxs, criterion, device)
                 X, Y = self.get_from_idxs(pulled_idxs)
                 yield X, Y
                 
@@ -98,7 +112,10 @@ class DataLoader():
             top_fn = max if strategy == 'heterogeneous_max_k_loss' else min
             for _ in range(num_iterations):
                 pulled_idxs = weighted_highest_sampling_per_class(self.weighted_indices_per_class, batch_size=self.batch_size, top_fn=top_fn)
-                self._update_weights_per_class(pulled_idxs, criterion, device)
+                if update_every_iteration:
+                    self.initialize_weights_per_class(criterion, device, seed=random_state)
+                else:
+                    self._update_weights_per_class(pulled_idxs, criterion, device)
                 X, Y = self.get_from_idxs(pulled_idxs)
                 yield X, Y
             

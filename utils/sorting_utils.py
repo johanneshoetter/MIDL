@@ -118,6 +118,30 @@ def sort_all_classes(inputs, targets, batch_size, use_shuffle=True, random_state
                 
     return np.array(input_batches), np.array(target_batches) 
 
+def weighted_random_sampling(weighted_indices, batch_size=3, top_fn=max, random_state=None):
+    '''
+    In weighted random sampling (WRS) the items are weighted and the probability of 
+    each item to be selected is determined by its relative weight.
+    -- Params:
+    @weighted_indices: dictionary containing which index of the samples has which probability
+    @batch_size: number of samples per batch
+    -- Return: indices of the pulled inputs
+    '''
+    
+    assert type(weighted_indices) == dict, 'The weighted indices must be given as a dictionary'  
+
+    np.random.seed(random_state)
+    
+    pulled_indices = []
+    for _ in range(batch_size):
+        sum_of_values = sum(weighted_indices.values())
+        for index, weight in weighted_indices.items():
+            weighted_indices[index] = weight / sum_of_values
+        pulled_index = np.random.choice(list(weighted_indices.keys()), p = list(weighted_indices.values()))
+        weighted_indices[pulled_index] = 0
+        pulled_indices.append(pulled_index)
+    return pulled_indices
+
 def weighted_highest_sampling(weighted_indices, batch_size=3, top_fn=max):
     '''
     In weighted random sampling (WRS) the items are weighted and the probability of 
